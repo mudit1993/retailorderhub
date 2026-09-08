@@ -25,9 +25,11 @@ public class OrderManager {
     private EntityManager entityManager;
 
     private final OrderRepository orderRepository;
+    private final PaymentService paymentService;
 
-    public OrderManager(OrderRepository orderRepository) {
+    public OrderManager(OrderRepository orderRepository, PaymentService paymentService) {
         this.orderRepository = orderRepository;
+        this.paymentService = paymentService;
     }
 
     @Transactional
@@ -51,17 +53,21 @@ public class OrderManager {
             }
         }
 
-        // Process payment
-        if (paymentMethod.equals("CREDIT_CARD")) {
-            System.out.println("Charging credit card: " + amount);
-        } else if (paymentMethod.equals("PAYPAL")) {
-            System.out.println("Charging PayPal: " + amount);
-        } else if (paymentMethod.equals("GIFT_CARD")) {
-            System.out.println("Charging gift card: " + amount);
-        } else {
-            System.out.println("Unknown payment method: " + paymentMethod);
+        if(!paymentService.charge(paymentMethod, amount)) {
             return false;
         }
+
+        // Process payment
+//        if (paymentMethod.equals("CREDIT_CARD")) {
+//            System.out.println("Charging credit card: " + amount);
+//        } else if (paymentMethod.equals("PAYPAL")) {
+//            System.out.println("Charging PayPal: " + amount);
+//        } else if (paymentMethod.equals("GIFT_CARD")) {
+//            System.out.println("Charging gift card: " + amount);
+//        } else {
+//            System.out.println("Unknown payment method: " + paymentMethod);
+//            return false;
+//        }
 
         // Save order
         Order order = new Order();

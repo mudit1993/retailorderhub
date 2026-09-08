@@ -2,7 +2,7 @@
 
 Monolithic full-stack Java application built for the 5-day System Design training
 program. This is the **Day 1 baseline** — a deliberately simple, single-deployable
-Spring Boot app with one intentionally messy `OrderManager` class, used as the
+Spring Boot app with one intentionally messy `OrderService` class, used as the
 reference codebase for Day 1's Lab 1 (HLD vs LLD) and Lab 2 (SonarCloud) materials.
 
 ## Stack
@@ -46,7 +46,7 @@ On the home page, use one of the seeded product names exactly as shown in the
 catalog (e.g. `Laptop, Mouse`), any customer ID, and any payment method. A
 successful order will appear on the `/orders` page.
 
-## About `OrderManager`
+## About `OrderService`
 
 `src/main/java/com/training/retailorderhub/service/OrderManager.java` is
 **deliberately** written the way a real legacy class often looks, to give Day 1's

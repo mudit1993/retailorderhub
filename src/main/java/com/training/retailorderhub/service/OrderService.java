@@ -19,17 +19,19 @@ import java.util.List;
  * code — Day 2 refactors it through the SOLID principles.
  */
 @Service
-public class OrderManager {
+public class OrderService {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     private final OrderRepository orderRepository;
     private final PaymentService paymentService;
+    private final InventoryService inventoryService;
 
-    public OrderManager(OrderRepository orderRepository, PaymentService paymentService) {
+    public OrderService(OrderRepository orderRepository, PaymentService paymentService, InventoryService inventoryService) {
         this.orderRepository = orderRepository;
         this.paymentService = paymentService;
+        this.inventoryService = inventoryService;
     }
 
     @Transactional
@@ -46,28 +48,18 @@ public class OrderManager {
 
         // Check inventory
         for (String itemName : itemNames) {
-            int qty = getInventoryQuantity(itemName);
-            if (qty <= 0) {
+            if (!inventoryService.isInStock(itemName)) {
                 System.out.println("Out of stock: " + itemName);
                 return false;
             }
         }
 
+        // Process payment
         if(!paymentService.charge(paymentMethod, amount)) {
             return false;
         }
 
-        // Process payment
-//        if (paymentMethod.equals("CREDIT_CARD")) {
-//            System.out.println("Charging credit card: " + amount);
-//        } else if (paymentMethod.equals("PAYPAL")) {
-//            System.out.println("Charging PayPal: " + amount);
-//        } else if (paymentMethod.equals("GIFT_CARD")) {
-//            System.out.println("Charging gift card: " + amount);
-//        } else {
-//            System.out.println("Unknown payment method: " + paymentMethod);
-//            return false;
-//        }
+
 
         // Save order
         Order order = new Order();
@@ -81,37 +73,11 @@ public class OrderManager {
 
         // Update inventory
         for (String itemName : itemNames) {
-            String updateQuery = "UPDATE product SET quantity = quantity - 1 WHERE name = '" + itemName + "'";
-            entityManager.createNativeQuery(updateQuery).executeUpdate();
+            inventoryService.decrementQuantity(itemName);
         }
 
         System.out.println("Order confirmed for customer " + customerId);
         return true;
     }
 
-    public boolean validateCustomer(String customerId) {
-        if (customerId == null || customerId.isEmpty()) {
-            System.out.println("Invalid customer");
-            return false;
-        }
-        return true;
-    }
-
-    public boolean validateItems(List<String> itemNames) {
-        if (itemNames == null || itemNames.isEmpty()) {
-            System.out.println("Invalid items");
-            return false;
-        }
-        return true;
-    }
-
-    private int getInventoryQuantity(String itemName) {
-        String query = "SELECT quantity FROM product WHERE name = '" + itemName + "'";
-        try {
-            Object result = entityManager.createNativeQuery(query).getSingleResult();
-            return ((Number) result).intValue();
-        } catch (jakarta.persistence.NoResultException e) {
-            return 0;
-        }
-    }
 }

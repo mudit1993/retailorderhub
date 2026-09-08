@@ -6,27 +6,23 @@ import com.training.retailorderhub.strategy.PaymentStrategy;
 import com.training.retailorderhub.strategy.PaypalStrategy;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 public class PaymentService {
 
-    private PaymentStrategy paymentStrategy;
+    private final Map<String, PaymentStrategy> strategyMap;
+
+    public PaymentService(Map<String, PaymentStrategy> strategyMap) {
+        this.strategyMap = strategyMap;
+    }
 
     public boolean charge(String paymentMethod, double amount){
-
-        switch(paymentMethod) {
-            case "CREDIT_CARD" :
-                paymentStrategy = new CreditCardStrategy();
-                break;
-            case "PAYPAL" :
-                paymentStrategy = new PaypalStrategy();
-                break;
-            case "GIFT_CARD" :
-                paymentStrategy = new GiftCardStrategy();
-                break;
-            default:
-                System.out.println("Unknown payment method: " + paymentMethod);
-                return false;
+        PaymentStrategy paymentStrategy = strategyMap.get(paymentMethod);
+        if(paymentStrategy == null){
+            System.out.println("Unknown payment method: " + paymentMethod);
+            return false;
         }
-      return paymentStrategy.charge(amount);
+        return paymentStrategy.charge(amount);
     }
 }
